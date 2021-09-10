@@ -1,8 +1,10 @@
 import numpy as np
+import math
+
 from matplotlib import pyplot as plt
 
 visits_table = {}
-T_0 = 0.1
+
 def temp_init(T_k, L_0, R_min, graph):
     u = rand_path(graph)
     R_a = 0
@@ -12,39 +14,26 @@ def temp_init(T_k, L_0, R_min, graph):
         T_k *= beta
     return T_k
 
-def markov(L_k, u, graph, T_k=T_0):
+def markov(L_k, u, graph, T_k):
     j = 0
     for l in range(L_k):
         v = mutate(u)
         E_u = cost(graph, u)
         E_v = cost(graph, v)
         if E_v <= E_u:
-            #print(E_v,'less or equal than', E_u)
-            u = v
+            #print('Ev < Eu')
+            u = v.copy()
             j += 1
-        elif np.random.uniform(0.0, 1.0) < metropolis(E_u, E_v, T_k):
-            print('metropolis')
-            u = v
+        elif np.random.uniform(0.0, 1.0) < boltzmann(E_u, E_v, T_k):
+            #print('metropolis', boltzmann(E_u, E_v, T_k))
+            u = v.copy()
             j += 1
-        else:
-            print('no')
-    
-    
-#    x_seq = [city[0] for city in u]
-#    x_seq.append(u[0][0])
-#    y_seq = [city[1] for city in u]
-#    y_seq.append(u[0][1])
-#    plt.scatter(x_seq, y_seq)
-#    plt.plot(x_seq, y_seq)
-#    plt.savefig("hola")
-#    plt.show()
-
 
     return u, j/L_k
-    
-def metropolis(E_u, E_v, T_k):
-    a = -(E_v - E_u)/(T_k)
-    return np.exp(a)
+
+def boltzmann(E_u, E_v, T_k):
+    n = -(E_v - E_u)/(T_k)
+    return math.e ** n
 
 def graph_gen(n):
     nodes = []
@@ -68,12 +57,12 @@ def cost(graph, path):
     return total
 
 def rand_path(graph):
-    temp_graph = graph
+    temp_graph = graph.copy()
     np.random.shuffle(temp_graph)
     return temp_graph
 
 def mutate(path):
-    temp_path = path
+    temp_path = path.copy()
     index = np.random.randint(0, len(temp_path) - 2)
     temp = temp_path[index]
     temp_path[index] = temp_path[index + 1]
@@ -84,11 +73,23 @@ def visit(node):
     visits_table[node] = True
 
 def annealing(T_0, L_k, R_min, graph, iter, alpha):
+    energy = []
+    best_paths = []
     T_k = temp_init(T_0, L_k, R_min, graph)
+    print('T0 =', T_k)
     k = 0
     u = rand_path(graph)
+    energy.append(cost(graph, u))
+    best_paths.append(u)
     while(k < iter):
         u, R_a = markov(L_k, u, graph, T_k)
         k += 1
         T_k *= alpha
-    return u
+        if cost(graph, u) < cost(graph, best_paths[-1]):
+            best_paths.append(u)
+            energy.append(cost(graph, u))
+        #print('Eu =', cost(graph, u),'\t\tTk =', T_k, '\t\tRa =', R_a)
+    print('Eu =', cost(graph, u),'\t\tTk =', T_k, '\t\tRa =', R_a)
+    plt.plot(energy)
+    plt.show()
+    return best_paths[-1]
