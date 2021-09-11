@@ -6,15 +6,6 @@ from matplotlib import pyplot as plt
 
 visits_table = {}
 
-def temp_init(T_k, L_0, R_min, graph):
-    u = rand_path(graph)
-    R_a = 0
-    beta = 1.5
-    while R_a < R_min:
-        u, R_a = markov(K, L_0, u, graph, T_k)
-        T_k *= beta
-    return T_k
-
 def k_temp_init(K, T_k, L_0, R_min, graph):
     u = k_rand_paths(graph, K)
     R_a = 0
@@ -116,13 +107,6 @@ def euclid_dist(node1, node2):
     #print(dist)
     return dist
 
-def cost(graph, path):
-    total = 0
-    for i in range(1, len(path)):
-        total += euclid_dist(path[i-1], path[i])
-    total += euclid_dist(path[-1], path[0])
-    return total
-
 def k_cost(K, graph, path):
     first_city = 0
     index = 0
@@ -137,44 +121,6 @@ def k_cost(K, graph, path):
             
     return cost_list
 
-def rand_path(graph):
-    temp_graph = graph.copy()
-    np.random.shuffle(temp_graph)
-    return temp_graph
-
-def mutate(path):
-    temp_path = path.copy()
-    index = np.random.randint(0, len(temp_path) - 2)
-    temp = temp_path[index]
-    temp_path[index] = temp_path[index + 1]
-    temp_path[index + 1] = temp
-    return temp_path
-
-def visit(node):
-    visits_table[node] = True
-
-def annealing(T_0, L_k, R_min, graph, iter, alpha):
-    energy = []
-    best_paths = []
-    T_k = temp_init(T_0, L_k, R_min, graph)
-    print('T0 =', T_k)
-    k = 0
-    u = rand_path(graph)
-    energy.append(cost(graph, u))
-    best_paths.append(u)
-    while(k < iter):
-        u, R_a = markov(L_k, u, graph, T_k)
-        k += 1
-        T_k *= alpha
-        if cost(graph, u) < cost(graph, best_paths[-1]):
-            best_paths.append(u)
-            energy.append(cost(graph, u))
-        #print('Eu =', cost(graph, u),'\t\tTk =', T_k, '\t\tRa =', R_a)
-    print('Eu =', cost(graph, u),'\t\tTk =', T_k, '\t\tRa =', R_a)
-    plt.plot(energy)
-    plt.show()
-    return best_paths[-1]
-
 def k_annealing(K, T_0, L_k, R_min, graph, iter, alpha):
     energy = []
     best_paths = []
@@ -184,18 +130,16 @@ def k_annealing(K, T_0, L_k, R_min, graph, iter, alpha):
     u = k_rand_paths(graph, K)
     energy.append(k_cost(K, graph, u))
     print(k_cost(K, graph, u))
+    
     best_paths.append(u)
     while(k < iter):
         u, R_a = markov(K, L_k, u, graph, T_k)
         k += 1
         T_k *= alpha
-        #if sum(k_cost(K, graph, u)) < sum(k_cost(K, graph, best_paths[-1])):
-        best_paths.append(u)
-        energy.append(k_cost(K, graph, u))
+        if sum(k_cost(K, graph, u)) < sum(k_cost(K, graph, best_paths[-1])):
+            best_paths.append(u)
+            energy.append(k_cost(K, graph, u))
         #print('Eu =', cost(graph, u),'\t\tTk =', T_k, '\t\tRa =', R_a)
-    for i in range(K):
-        energy = sorted(energy, key=itemgetter(i))
-    #print('Eu =', sum(k_cost(K, graph, u)),'\t\tTk =', T_k, '\t\tRa =', R_a)
     plt.plot(energy)
     plt.show()
-    return best_paths[-1]
+    return best_paths[-1], best_paths

@@ -3,18 +3,17 @@ from matplotlib import pyplot as plt
 import itertools
 
 def run_experiment(k):
-    graph = graph_gen(20)
-    path = k_annealing(k, 0.1, 600, 0.9, graph, 1000, 1.1)
+    graph = graph_gen(12)
+    path, best_paths = k_annealing(k, 0.1, 500, 0.9, graph, 1000, 1.1)
 
-    paths = [[] for city in range(k)]
-    single_path = []
+    paths = [[] for t in range(k)]
     traveler = 0
     for city in path:
         if city != -1:
             paths[traveler].append(city)
         else:
-            traveler =+ 1
-    
+            traveler += 1        
+
     for j in paths:
         x_seq = [city[0] for city in j]
         x_seq.append(j[0][0])
@@ -24,4 +23,4 @@ def run_experiment(k):
         plt.plot(x_seq, y_seq)
     plt.show()
 
-run_experiment(3)
+run_experiment(2)
