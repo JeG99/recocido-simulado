@@ -53,11 +53,11 @@ def count_cities(path):
                 needs_correction = True
             cities = 0
         index += 1
-
+    cities_per_traveler.append((index, cities))
+    #print(cities_per_traveler)
     return needs_correction, cities_per_traveler
 
 def correct_paths(paths, cities_per_traveler):
-    
     needs_correction = True
     while(needs_correction):
         max_cities = max(cities_per_traveler, key=lambda x: x[1])
@@ -139,7 +139,7 @@ def k_annealing(K, T_0, L_k, R_min, graph, iter, alpha):
         if sum(k_cost(K, graph, u)) < sum(k_cost(K, graph, best_paths[-1])):
             best_paths.append(u)
             energy.append(k_cost(K, graph, u))
-        #print('Eu =', cost(graph, u),'\t\tTk =', T_k, '\t\tRa =', R_a)
+    print('Eu =', k_cost(K, graph, u), '\tTk =', T_k, '\tRa =', R_a)
     plt.plot(energy)
     plt.show()
     return best_paths[-1], best_paths

@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 import itertools
 
 def run_experiment(k):
-    graph = graph_gen(12)
-    path, best_paths = k_annealing(k, 0.1, 500, 0.9, graph, 1000, 1.1)
+    graph = graph_gen(20)
+    path, best_paths = k_annealing(k, 0.001, 10, 0.95, graph, 5000, 1.00001)
 
     paths = [[] for t in range(k)]
     traveler = 0
@@ -23,4 +23,4 @@ def run_experiment(k):
         plt.plot(x_seq, y_seq)
     plt.show()
 
-run_experiment(2)
+run_experiment(5)
