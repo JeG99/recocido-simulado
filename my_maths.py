@@ -1,6 +1,7 @@
 import numpy as np
 import math
 
+from operator import itemgetter
 from matplotlib import pyplot as plt
 
 visits_table = {}
@@ -10,7 +11,7 @@ def temp_init(T_k, L_0, R_min, graph):
     R_a = 0
     beta = 1.5
     while R_a < R_min:
-        u, R_a = markov(L_0, u, graph, T_k)
+        u, R_a = markov(K, L_0, u, graph, T_k)
         T_k *= beta
     return T_k
 
@@ -19,7 +20,7 @@ def k_temp_init(K, T_k, L_0, R_min, graph):
     R_a = 0
     beta = 1.5
     while R_a < R_min:
-        u, R_a = markov(L_0, u, graph, T_k)
+        u, R_a = markov(K, L_0, u, graph, T_k)
         T_k *= beta
     return T_k
 
@@ -40,10 +41,10 @@ def k_mutate(path):
     temp_path[index] = temp_path[index + 1]
     temp_path[index + 1] = temp
     needs_correction, cities_per_traveler = count_cities(temp_path)
-
+    #print(temp_path)
     if needs_correction:
-        print(temp_path)
-        correct_paths(temp_path, cities_per_traveler)
+        temp_path = k_mutate(path).copy()
+        #correct_paths(temp_path, cities_per_traveler)
 
     return temp_path
 
@@ -82,12 +83,12 @@ def correct_paths(paths, cities_per_traveler):
 
         needs_correction, cities_per_traveler = count_cities(paths)
 
-def markov(L_k, u, graph, T_k):
+def markov(K, L_k, u, graph, T_k):
     j = 0
     for l in range(L_k):
         v = k_mutate(u)
-        E_u = sum(k_cost(graph, u))
-        E_v = sum(k_cost(graph, v))
+        E_u = sum(k_cost(K, graph, u))
+        E_v = sum(k_cost(K, graph, v))
         if E_v <= E_u:
             u = v.copy()
             j += 1
@@ -122,17 +123,18 @@ def cost(graph, path):
     total += euclid_dist(path[-1], path[0])
     return total
 
-def k_cost(graph, path):
+def k_cost(K, graph, path):
     first_city = 0
-    total = 0
-    cost_list = []
+    index = 0
+    cost_list = [0 for city in range(K)]
     for i in range(1, len(path)):
         if path[i] != -1:
-            total += euclid_dist(path[i-1], path[i])
+            cost_list[index] += euclid_dist(path[i-1], path[i])
         else:
-            total += euclid_dist(path[-1], path[first_city])
+            cost_list[index] += euclid_dist(path[-1], path[first_city])
             first_city = i + 1
-            total = 0
+            index += 1
+            
     return cost_list
 
 def rand_path(graph):
@@ -180,17 +182,20 @@ def k_annealing(K, T_0, L_k, R_min, graph, iter, alpha):
     print('T0 =', T_k)
     k = 0
     u = k_rand_paths(graph, K)
-    energy.append(sum(k_cost(graph, u)))
+    energy.append(k_cost(K, graph, u))
+    print(k_cost(K, graph, u))
     best_paths.append(u)
     while(k < iter):
-        u, R_a = markov(L_k, u, graph, T_k)
+        u, R_a = markov(K, L_k, u, graph, T_k)
         k += 1
         T_k *= alpha
-        if sum(k_cost(graph, u)) < sum(k_cost(graph, best_paths[-1])):
-            best_paths.append(u)
-            energy.append(sum(k_cost(graph, u)))
+        #if sum(k_cost(K, graph, u)) < sum(k_cost(K, graph, best_paths[-1])):
+        best_paths.append(u)
+        energy.append(k_cost(K, graph, u))
         #print('Eu =', cost(graph, u),'\t\tTk =', T_k, '\t\tRa =', R_a)
-    #print('Eu =', sum(k_cost(graph, u)),'\t\tTk =', T_k, '\t\tRa =', R_a)
+    for i in range(K):
+        energy = sorted(energy, key=itemgetter(i))
+    #print('Eu =', sum(k_cost(K, graph, u)),'\t\tTk =', T_k, '\t\tRa =', R_a)
     plt.plot(energy)
     plt.show()
     return best_paths[-1]
