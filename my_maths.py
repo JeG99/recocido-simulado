@@ -34,8 +34,7 @@ def k_mutate(path):
     needs_correction, cities_per_traveler = count_cities(temp_path)
     #print(temp_path)
     if needs_correction:
-        temp_path = k_mutate(path).copy()
-        #correct_paths(temp_path, cities_per_traveler)
+        correct_paths(temp_path, cities_per_traveler)
 
     return temp_path
 
@@ -49,12 +48,14 @@ def count_cities(path):
             cities += 1
         else:
             cities_per_traveler.append((index, cities))
-            if cities < 2:
+            if cities < 3:
                 needs_correction = True
             cities = 0
         index += 1
     cities_per_traveler.append((index, cities))
-    #print(cities_per_traveler)
+    if cities < 3:
+        needs_correction = True
+
     return needs_correction, cities_per_traveler
 
 def correct_paths(paths, cities_per_traveler):
@@ -62,9 +63,6 @@ def correct_paths(paths, cities_per_traveler):
     while(needs_correction):
         max_cities = max(cities_per_traveler, key=lambda x: x[1])
         min_cities = min(cities_per_traveler, key=lambda x: x[1])
-        
-        #print(max_cities, min_cities)
-        #print(paths)
 
         max_index = max_cities[0]
         min_index = min_cities[0]
