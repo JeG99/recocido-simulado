@@ -1,10 +1,8 @@
-import numpy as np
-import math
-
 from operator import itemgetter
 from matplotlib import pyplot as plt
 
-visits_table = {}
+import numpy as np
+import math
 
 def k_temp_init(K, T_k, L_0, R_min, graph):
     u = k_rand_paths(graph, K)
@@ -81,13 +79,13 @@ def markov(K, L_k, u, graph, T_k):
         if E_v <= E_u:
             u = v.copy()
             j += 1
-        elif np.random.uniform(0.0, 1.0) < boltzmann(E_u, E_v, T_k):
+        elif np.random.uniform(0.0, 1.0) < risk(E_u, E_v, T_k):
             u = v.copy()
             j += 1
 
     return u, j/L_k
 
-def boltzmann(E_u, E_v, T_k):
+def risk(E_u, E_v, T_k):
     n = -(E_v - E_u)/(T_k)
     return math.e ** n
 
@@ -95,8 +93,6 @@ def graph_gen(n):
     nodes = []
     for i in range(n):
         nodes.append((np.random.uniform(0, 1), np.random.uniform(0, 1)))
-    for city in nodes:
-        visits_table[city] = False
     return nodes
 
 def euclid_dist(node1, node2):
@@ -126,18 +122,21 @@ def k_annealing(K, T_0, L_k, R_min, graph, iter, alpha):
     print('T0 =', T_k)
     k = 0
     u = k_rand_paths(graph, K)
-    energy.append(k_cost(K, graph, u))
+    energy.append(sum(k_cost(K, graph, u)))
     print(k_cost(K, graph, u))
     
     best_paths.append(u)
-    while(k < iter):
+    while(k < iter - 1):
         u, R_a = markov(K, L_k, u, graph, T_k)
         k += 1
         T_k *= alpha
         if sum(k_cost(K, graph, u)) < sum(k_cost(K, graph, best_paths[-1])):
             best_paths.append(u)
-            energy.append(k_cost(K, graph, u))
+            energy.append(sum(k_cost(K, graph, u)))
+        else:
+            best_paths.append(best_paths[-1])
+            energy.append(sum(k_cost(K, graph, best_paths[-1])))
     print('Eu =', k_cost(K, graph, u), '\tTk =', T_k, '\tRa =', R_a)
-    plt.plot(energy)
-    plt.show()
-    return best_paths[-1], best_paths
+    #plt.plot(energy)
+    #plt.show()
+    return best_paths[-1], best_paths, energy
