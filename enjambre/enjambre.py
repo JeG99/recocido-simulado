@@ -1,7 +1,14 @@
 import numpy as np
+import pandas as pd
 
 from matplotlib import pyplot as plt
 from opti_utils import ackley, update_vel
+
+df_experiments = pd.DataFrame()
+
+def poner_menor(row):
+    df.at[row.name, 'menor'] = min(row['evaluacion'], df.iloc[row.name - 1].menor)
+    return None
 
 # Globals
 particle_amount = 5
@@ -39,6 +46,7 @@ def pso(iters=iters, plot=True):
             plt.show()
 
         print("Mejor en iteración " + str(t) +  " " +  str(global_min_pos) )
+
         # Calcula velocidad de cada partícula
         update_vel(particles_vel, alpha, particle_amount, dim, global_min_pos, particles_pos, particles_loc)
         norms = np.array(particles_pos, copy=True)

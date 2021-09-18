@@ -18,7 +18,7 @@ def k_rand_paths(graph, k):
     np.random.shuffle(temp_graph)
     sublen = int(len(temp_graph) / k)
     if sublen < 3:
-        raise Exception("Error: al menos 2 ciudades por viajero.")
+        raise Exception("Error: al menos 3 ciudades por viajero.")
     for i in range(k - 1):
         temp_graph.insert((sublen * (i + 1)), -1)
     return temp_graph
@@ -30,7 +30,6 @@ def k_mutate(path):
     temp_path[index] = temp_path[index + 1]
     temp_path[index + 1] = temp
     needs_correction, cities_per_traveler = count_cities(temp_path)
-    #print(temp_path)
     if needs_correction:
         correct_paths(temp_path, cities_per_traveler)
 
@@ -119,11 +118,9 @@ def k_annealing(K, T_0, L_k, R_min, graph, iter, alpha):
     energy = []
     best_paths = []
     T_k = k_temp_init(K, T_0, L_k, R_min, graph)
-    print('T0 =', T_k)
     k = 0
     u = k_rand_paths(graph, K)
     energy.append(sum(k_cost(K, graph, u)))
-    print(k_cost(K, graph, u))
     
     best_paths.append(u)
     while(k < iter - 1):
@@ -136,7 +133,6 @@ def k_annealing(K, T_0, L_k, R_min, graph, iter, alpha):
         else:
             best_paths.append(best_paths[-1])
             energy.append(sum(k_cost(K, graph, best_paths[-1])))
-    print('Eu =', k_cost(K, graph, u), '\tTk =', T_k, '\tRa =', R_a)
-    #plt.plot(energy)
-    #plt.show()
+    #print('Eu =', k_cost(K, graph, u), '\tTk =', T_k, '\tRa =', R_a)
+
     return best_paths[-1], best_paths, energy

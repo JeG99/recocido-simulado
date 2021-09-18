@@ -4,10 +4,6 @@ from matplotlib import pyplot as plt
 import itertools
 import pandas as pd
 
-def poner_menor(row):
-    df.at[row.name, 'menor'] = min(row['evaluacion'], df.iloc[row.name - 1].menor)
-    return None
-
 df_experiments = pd.DataFrame()
 
 k = 3
